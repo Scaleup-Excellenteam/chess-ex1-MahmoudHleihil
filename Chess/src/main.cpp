@@ -1,5 +1,6 @@
 // Chess 
 #include "Chess.h"
+#include "GameManager.h"
 
 int main()
 {
@@ -25,11 +26,13 @@ int main()
 		*/
 
 		/**/ 
-		{ // put your code here instead that code
-			cout << "code response >> ";
-			cin >> codeResponse;
-		}
+		// { // put your code here instead that code
+		// 	cout << "code response >> ";
+		// 	cin >> codeResponse;
+		// }
 		/**/
+        static GameManager gm(board);
+        codeResponse = gm.evaluateMove(res);
 
 		a.setCodeResponse(codeResponse);
 		res = a.getInput(); 
