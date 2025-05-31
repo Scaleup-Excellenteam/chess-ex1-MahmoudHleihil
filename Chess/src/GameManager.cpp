@@ -3,6 +3,10 @@
 
 GameManager::GameManager(const std::string& board) : m_board(board), m_turnWhite(true) {}
 
+bool GameManager::isWhiteTurn() const {
+    return m_turnWhite;
+}
+
 int GameManager::evaluateMove(const std::string& input) {
     int srcCol = input[0] - 'a';
     int srcRow = input[1] - '1';

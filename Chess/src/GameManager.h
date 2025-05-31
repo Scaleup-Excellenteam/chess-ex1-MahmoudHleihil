@@ -5,6 +5,7 @@
 class GameManager {
 public:
     GameManager(const std::string& board);
+    bool isWhiteTurn() const;
     int evaluateMove(const std::string& input);
 private:
     Board m_board;

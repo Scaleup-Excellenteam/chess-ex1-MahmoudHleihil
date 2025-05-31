@@ -10,4 +10,6 @@
     Knight.cpp
     Pawn.cpp
     Queen.cpp
+    ChessMultithreaded.cpp
+    PriorityQueue.cpp
 )

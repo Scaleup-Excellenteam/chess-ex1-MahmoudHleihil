@@ -1,43 +1,53 @@
 // Chess 
 #include "Chess.h"
 #include "GameManager.h"
+#include <iostream>
+#include <string>
 
-int main()
-{
-	string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
-//	string board = "##########K###############################R#############r#r#####";
-	Chess a(board);
-	int codeResponse = 0;
-	string res = a.getInput();
-	while (res != "exit")
-	{
-		/* 
-		codeResponse value : 
-		Illegal movements : 
-		11 - there is not piece at the source  
-		12 - the piece in the source is piece of your opponent
-		13 - there one of your pieces at the destination 
-		21 - illegal movement of that piece 
-		31 - this movement will cause you checkmate
+struct Move {
+    std::string from;
+    std::string to;
+    int score;
+};
 
-		legal movements : 
-		41 - the last movement was legal and cause check 
-		42 - the last movement was legal, next turn 
-		*/
+Move getBestMoveMultithreaded(GameManager gm, bool isWhite, int threadCount);
 
-		/**/ 
-		// { // put your code here instead that code
-		// 	cout << "code response >> ";
-		// 	cin >> codeResponse;
-		// }
-		/**/
-        static GameManager gm(board);
-        codeResponse = gm.evaluateMove(res);
+int main() {
+    std::string board = "RNBQKBNRPPPPPPPP################################pppppppprnbqkbnr"; 
+    Chess a(board);
+    GameManager gm(board);
 
-		a.setCodeResponse(codeResponse);
-		res = a.getInput(); 
-	}
+    int codeResponse = 0;
+    std::string res = "start";
+    bool autoMode = false;
+    int threadCount = 4;
 
-	cout << endl << "Exiting " << endl; 
-	return 0;
+    std::cout << "Enable auto-play mode? (1 = yes, 0 = no): ";
+    std::cin >> autoMode;
+
+    if (autoMode) {
+        std::cout << "Enter number of threads to use (e.g., 2, 4, 8): ";
+        std::cin >> threadCount;
+    }
+
+    while (res != "exit") {
+        if (!autoMode) {
+            res = a.getInput();
+            if (res == "exit") break;
+            codeResponse = gm.evaluateMove(res);
+        } else {
+            Move best = getBestMoveMultithreaded(gm, gm.isWhiteTurn(), threadCount);
+            res = best.from + best.to;
+            std::cout << "Auto move: " << res << " (score = " << best.score << ")\n";
+            codeResponse = gm.evaluateMove(res);
+            a.setInput(res);
+        }
+
+        a.setCodeResponse(codeResponse);
+        if (!autoMode)
+            res = a.getInput();
+    }
+
+    std::cout << "\nExiting.\n";
+    return 0;
 }

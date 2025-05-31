@@ -327,3 +327,11 @@ void Chess::setCodeResponse(int codeResponse)
 		((41 == codeResponse) || (codeResponse == 42)))
 		m_codeResponse = codeResponse;
 }
+
+void Chess::setInput(const std::string& input) {
+    m_input = input;
+}
+
+bool Chess::isWhiteTurn() const {
+    return m_turn;
+}

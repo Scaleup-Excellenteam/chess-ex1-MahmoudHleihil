@@ -40,4 +40,6 @@ public:
 	Chess& operator=(const Chess&) = delete;
 	string getInput();
 	void setCodeResponse(int codeResponse);
+	void setInput(const std::string& input);
+	bool isWhiteTurn() const;
 };
