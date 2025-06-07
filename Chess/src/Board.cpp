@@ -16,13 +16,18 @@ Board::Board(const std::string& boardStr) {
         if (c == '#') continue;
         bool isWhite = std::isupper(c);
         c = std::tolower(c);
-        if (c == 'r') m_board[i % 8][i / 8] = std::make_unique<Rook>(isWhite);
-        else if (c == 'k') m_board[i % 8][i / 8] = std::make_unique<King>(isWhite);
-        else if (c == 'b') m_board[i % 8][i / 8] = std::make_unique<Bishop>(isWhite);
-        else if (c == 'n') m_board[i % 8][i / 8] = std::make_unique<Knight>(isWhite);
-        else if (c == 'q') m_board[i % 8][i / 8] = std::make_unique<Queen>(isWhite);
-        else if (c == 'p') m_board[i % 8][i / 8] = std::make_unique<Pawn>(isWhite);
+        int row = i / 8, col = i % 8;
+        if (c == 'r') m_board[row][col] = std::make_unique<Rook>(isWhite);
+        else if (c == 'k') m_board[row][col] = std::make_unique<King>(isWhite);
+        else if (c == 'b') m_board[row][col] = std::make_unique<Bishop>(isWhite);
+        else if (c == 'n') m_board[row][col] = std::make_unique<Knight>(isWhite);
+        else if (c == 'q') m_board[row][col] = std::make_unique<Queen>(isWhite);
+        else if (c == 'p') m_board[row][col] = std::make_unique<Pawn>(isWhite);
     }
+
+    whiteKingMoved = blackKingMoved = false;
+    whiteLeftRookMoved = whiteRightRookMoved = false;
+    blackLeftRookMoved = blackRightRookMoved = false;
 }
 
 Board::Board(const Board& other) : m_board(8) {
@@ -33,6 +38,12 @@ Board::Board(const Board& other) : m_board(8) {
                 m_board[i][j] = other.m_board[i][j]->clone();
         }
     }
+    whiteKingMoved = other.whiteKingMoved;
+    blackKingMoved = other.blackKingMoved;
+    whiteLeftRookMoved = other.whiteLeftRookMoved;
+    whiteRightRookMoved = other.whiteRightRookMoved;
+    blackLeftRookMoved = other.blackLeftRookMoved;
+    blackRightRookMoved = other.blackRightRookMoved;
 }
 
 const Piece* Board::getPieceAt(int row, int col) const {
@@ -55,6 +66,36 @@ bool Board::isPathClear(const std::pair<int, int>& src, const std::pair<int, int
 }
 
 void Board::movePiece(const std::pair<int, int>& src, const std::pair<int, int>& dst) {
+    auto* piece = getPieceAt(src.first, src.second);
+    if (!piece) return;
+
+    // עדכון דגלי תזוזת כלים
+    if (auto king = dynamic_cast<King*>(piece)) {
+        if (piece->isWhite()) whiteKingMoved = true;
+        else blackKingMoved = true;
+
+        int dx = dst.first - src.first;
+        if (std::abs(dx) == 2) {
+            // ביצוע צרחה בפועל
+            if (dx > 0) {
+                // kingside
+                movePiece({src.first, 7}, {src.first, 5});
+            } else {
+                // queenside
+                movePiece({src.first, 0}, {src.first, 3});
+            }
+        }
+    }
+    else if (auto rook = dynamic_cast<Rook*>(piece)) {
+        if (piece->isWhite()) {
+            if (src.first == 7 && src.second == 0) whiteLeftRookMoved = true;
+            if (src.first == 7 && src.second == 7) whiteRightRookMoved = true;
+        } else {
+            if (src.first == 0 && src.second == 0) blackLeftRookMoved = true;
+            if (src.first == 0 && src.second == 7) blackRightRookMoved = true;
+        }
+    }
+
     m_board[dst.first][dst.second] = std::move(m_board[src.first][src.second]);
     m_board[src.first][src.second] = nullptr;
 }
@@ -78,4 +119,60 @@ bool Board::isCheck(bool forWhite) const {
         }
     }
     return false;
+}
+
+bool Board::canCastle(bool white, bool kingSide) const {
+    if (white) {
+        if (whiteKingMoved) return false;
+        if (kingSide && whiteRightRookMoved) return false;
+        if (!kingSide && whiteLeftRookMoved) return false;
+
+        if (kingSide) {
+            if (getPieceAt(7, 5) || getPieceAt(7, 6)) return false;
+            if (!isPathClear({7, 4}, {7, 7})) return false;
+            if (isCheck(true)) return false;
+            Board temp = *this;
+            temp.movePiece({7, 4}, {7, 5});
+            if (temp.isCheck(true)) return false;
+            temp.movePiece({7, 5}, {7, 6});
+            if (temp.isCheck(true)) return false;
+            return true;
+        } else {
+            if (getPieceAt(7, 1) || getPieceAt(7, 2) || getPieceAt(7, 3)) return false;
+            if (!isPathClear({7, 4}, {7, 0})) return false;
+            if (isCheck(true)) return false;
+            Board temp = *this;
+            temp.movePiece({7, 4}, {7, 3});
+            if (temp.isCheck(true)) return false;
+            temp.movePiece({7, 3}, {7, 2});
+            if (temp.isCheck(true)) return false;
+            return true;
+        }
+    } else {
+        if (blackKingMoved) return false;
+        if (kingSide && blackRightRookMoved) return false;
+        if (!kingSide && blackLeftRookMoved) return false;
+
+        if (kingSide) {
+            if (getPieceAt(0, 5) || getPieceAt(0, 6)) return false;
+            if (!isPathClear({0, 4}, {0, 7})) return false;
+            if (isCheck(false)) return false;
+            Board temp = *this;
+            temp.movePiece({0, 4}, {0, 5});
+            if (temp.isCheck(false)) return false;
+            temp.movePiece({0, 5}, {0, 6});
+            if (temp.isCheck(false)) return false;
+            return true;
+        } else {
+            if (getPieceAt(0, 1) || getPieceAt(0, 2) || getPieceAt(0, 3)) return false;
+            if (!isPathClear({0, 4}, {0, 0})) return false;
+            if (isCheck(false)) return false;
+            Board temp = *this;
+            temp.movePiece({0, 4}, {0, 3});
+            if (temp.isCheck(false)) return false;
+            temp.movePiece({0, 3}, {0, 2});
+            if (temp.isCheck(false)) return false;
+            return true;
+        }
+    }
 }

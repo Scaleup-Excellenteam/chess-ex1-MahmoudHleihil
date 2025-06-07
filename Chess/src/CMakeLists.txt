@@ -12,4 +12,5 @@
     Queen.cpp
     ChessMultithreaded.cpp
     PriorityQueue.cpp
+    ChessAI.cpp
 )
