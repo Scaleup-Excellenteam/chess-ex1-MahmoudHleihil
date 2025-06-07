@@ -13,6 +13,15 @@ public:
     bool isCheck(bool forWhite) const;
     void movePiece(const std::pair<int, int>& src, const std::pair<int, int>& dst);
     std::pair<int, int> findKing(bool white) const;
+    bool canCastle(bool white, bool kingSide) const;
+
 private:
     std::vector<std::vector<std::unique_ptr<Piece>>> m_board;
+
+    bool whiteKingMoved;
+    bool blackKingMoved;
+    bool whiteLeftRookMoved;
+    bool whiteRightRookMoved;
+    bool blackLeftRookMoved;
+    bool blackRightRookMoved;
 };

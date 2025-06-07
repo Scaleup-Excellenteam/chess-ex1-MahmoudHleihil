@@ -14,6 +14,8 @@ public:
     virtual std::unique_ptr<Piece> clone() const = 0;
     bool isWhite() const { return m_isWhite; }
 
+    virtual char getType() const = 0;
+    
 protected:
     bool m_isWhite;
 };

@@ -28,3 +28,41 @@ int GameManager::evaluateMove(const std::string& input) {
     m_turnWhite = !m_turnWhite;
     return (m_board.isCheck(m_turnWhite)) ? 41 : 42;
 }
+
+std::vector<std::string> GameManager::getAllLegalMoves() const {
+    std::vector<std::string> moves;
+    const std::string letters = "abcdefgh";
+    const std::string digits = "12345678";
+    for (int srcRow = 0; srcRow < 8; ++srcRow) {
+        for (int srcCol = 0; srcCol < 8; ++srcCol) {
+            const auto* piece = m_board.getPieceAt(srcRow, srcCol);
+            if (!piece || piece->isWhite() != m_turnWhite) continue;
+            for (int dstRow = 0; dstRow < 8; ++dstRow) {
+                for (int dstCol = 0; dstCol < 8; ++dstCol) {
+                    if (srcRow == dstRow && srcCol == dstCol) continue;
+                    if (!piece->isLegalMove({srcRow, srcCol}, {dstRow, dstCol}, m_board)) continue;
+
+                    Board temp = m_board;
+                    temp.movePiece({srcRow, srcCol}, {dstRow, dstCol});
+                    if (!temp.isCheck(m_turnWhite)) {
+                        std::string move;
+                        move += ('a' + srcCol);
+                        move += ('1' + srcRow);
+                        move += ('a' + dstCol);
+                        move += ('1' + dstRow);
+                        moves.push_back(move);
+                    }
+                }
+            }
+        }
+    }
+    return moves;
+}
+
+const Piece* GameManager::getPiece(int row, int col) const {
+    return m_board.getPieceAt(row, col);
+}
+
+bool GameManager::isCheck(bool white) const {
+    return m_board.isCheck(white);
+}
